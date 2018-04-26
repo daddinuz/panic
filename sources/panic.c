@@ -65,7 +65,7 @@ void __panic(const char *file, int line, const char *format, ...) {
 void __panic_variadic(const char *file, int line, const char *format, va_list args) {
     assert(file);
     assert(format);
-    fprintf(stderr, "\nAt: %s:%d:\n", file, line);
+    fprintf(stderr, "\nAt: %s:%d\n", file, line);
     if (errno != 0) {
         fprintf(stderr, "errno: (%d) %s\n", errno, strerror(errno));
     }
