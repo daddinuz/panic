@@ -38,9 +38,6 @@ extern "C" {
 #define __attribute__(...)
 #endif
 
-/*
- * Versioning
- */
 #define PANIC_VERSION_MAJOR       0
 #define PANIC_VERSION_MINOR       1
 #define PANIC_VERSION_PATCH       0
