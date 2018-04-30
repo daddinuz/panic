@@ -34,7 +34,7 @@ int main() {
     FILE *f = fopen(path, "r");
 
     if (!f) {
-        panic("Unable to open file: %s\n", path);
+        Panic_abort("Unable to open file: %s\n", path);
     }
 
     return 0;
