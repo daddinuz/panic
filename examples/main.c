@@ -29,12 +29,20 @@
 #include <stdio.h>
 #include <panic.h>
 
-int main() {
-    const char path[] = "/a/path/to/a/file/which/not/exists.txt";
-    FILE *f = fopen(path, "r");
+static FILE *f = NULL;
+static const char path[] = "/a/path/to/a/file/which/not/exists.txt";
 
-    if (!f) {
-        Panic_abort("Unable to open file: %s\n", path);
+void onTerminate(void) {
+    if (f) {
+        fclose(f);
+    }
+}
+
+int main() {
+    Panic_registerCallback(onTerminate);
+
+    if (!(f = fopen(path, "r"))) {
+        Panic_terminate("Unable to open file: %s\n", path);
     }
 
     return 0;
