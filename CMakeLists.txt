@@ -8,5 +8,5 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
 include_directories(sources)
 include(sources/build.cmake)
 
-# ecmpales
+# examples
 include(examples/build.cmake)
