@@ -1,49 +1,58 @@
 /*
- * Author: daddinuz
- * email:  daddinuz@gmail.com
- *
- * Copyright (c) 2018 Davide Di Carlo
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+Author: daddinuz
+email:  daddinuz@gmail.com
+
+Copyright (c) 2018 Davide Di Carlo
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include <stdio.h>
 #include <panic.h>
 
-static FILE *f = NULL;
-static const char path[] = "/a/path/to/a/file/which/not/exists.txt";
+static FILE *stream = NULL;
 
 void onTerminate(void) {
-    if (f) {
-        fclose(f);
+    if (NULL != stream) {
+        fclose(stream);
+    }
+}
+
+void ensureOpen(const char *path) {
+    stream = fopen(path, "r");
+    if (NULL == stream) {
+        Panic_terminate("Unable to open file: %s", path);
+    }
+    Panic_registerCallback(onTerminate);
+}
+
+void ensureWrite(const char *message) {
+    if (fputs(message, stream) < 0) {
+        Panic_terminate("Unable to write to file");
     }
 }
 
 int main() {
-    Panic_registerCallback(onTerminate);
-
-    if (!(f = fopen(path, "r"))) {
-        Panic_terminate("Unable to open file: %s\n", path);
-    }
-
+    ensureOpen("/tmp/testfile");
+    ensureWrite("Hello world!\n");
+    fclose(stream);
     return 0;
 }
