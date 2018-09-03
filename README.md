@@ -2,8 +2,6 @@
 
 A panic library to abort execution on non-recoverable errors with a detailed message.
 
-### Examples
-
 ```c
 #include <stdio.h>
 #include <panic.h>
@@ -56,6 +54,7 @@ Cause: Unable to write to file
 
 #### PANIC_UNWIND_SUPPORT
 
-Disabled by default, prints a traceback with function calls useful for debugging.
+Disabled by default, prints a traceback with function calls useful for debugging.  
 Enable this feature running `cmake -DPANIC_UNWIND_SUPPORT=1` by command line or setting option to ON in `sources/build.cmake`.
-**Note:** libunwind must be installed on the system in order to enable this feature.
+
+**Note:** In order to enable this feature [libunwind](https://github.com/libunwind/libunwind) is required.
