@@ -28,6 +28,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 #if !(defined(__GNUC__) || defined(__clang__))
 __attribute__(...)
@@ -45,7 +46,7 @@ extern "C" {
 #define PANIC_VERSION_HEX           0x010000
 
 /**
- * Type signature of the callback function to be executed on exit.
+ * Type signature of the callback to be executed before terminating.
  */
 typedef void (*Panic_Callback)(void);
 
@@ -65,16 +66,40 @@ extern Panic_Callback Panic_registerCallback(Panic_Callback callback);
     __Panic_terminate((__FILE__), (__LINE__), __VA_ARGS__)
 
 /**
+ * Terminates execution if condition is `true`.
+ */
+#define Panic_when(condition) \
+    __Panic_when((__FILE__), (__LINE__), (#condition), (condition))
+
+/**
+ * Terminates execution if condition is `false`.
+ */
+#define Panic_unless(condition) \
+    __Panic_unless((__FILE__), (__LINE__), (#condition), (condition))
+
+/**
  * @attention this function must be treated as opaque therefore should not be called directly.
  */
 extern void __Panic_terminate(const char *file, int line, const char *format, ...)
-__attribute__((__noreturn__, __nonnull__(1, 3), __format__(__printf__, 3, 4)));
+__attribute__((__noinline__, __noreturn__, __nonnull__(1, 3), __format__(__printf__, 3, 4)));
 
 /**
  * @attention this function must be treated as opaque therefore should not be called directly.
  */
 extern void __Panic_vterminate(const char *file, int line, const char *format, va_list args)
-__attribute__((__noreturn__, __nonnull__(1, 3), __format__(__printf__, 3, 0)));
+__attribute__((__noinline__, __noreturn__, __nonnull__(1, 3), __format__(__printf__, 3, 0)));
+
+/**
+ * @attention this function must be treated as opaque therefore should not be called directly.
+ */
+extern void __Panic_when(const char *file, int line, const char *message, bool condition)
+__attribute__((__noinline__, __nonnull__(1, 3)));
+
+/**
+ * @attention this function must be treated as opaque therefore should not be called directly.
+ */
+extern void __Panic_unless(const char *file, int line, const char *message, bool condition)
+__attribute__((__noinline__, __nonnull__(1, 3)));
 
 #ifdef __cplusplus
 }

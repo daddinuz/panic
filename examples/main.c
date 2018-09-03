@@ -37,7 +37,8 @@ void onTerminate(void) {
 }
 
 void ensureOpen(const char *path) {
-    stream = fopen(path, "r");
+    Panic_when(NULL == path);
+    stream = fopen(path, "r"); // open file for reading
     if (NULL == stream) {
         Panic_terminate("Unable to open file: %s", path);
     }
@@ -45,8 +46,9 @@ void ensureOpen(const char *path) {
 }
 
 void ensureWrite(const char *message) {
+    Panic_unless(NULL != message);
     if (fputs(message, stream) < 0) {
-        Panic_terminate("Unable to write to file");
+        Panic_terminate("Unable to write to file"); // file was opened for reading only
     }
 }
 

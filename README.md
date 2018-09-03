@@ -3,6 +3,7 @@
 A panic library to abort execution on non-recoverable errors with a detailed message.
 
 ```c
+
 #include <stdio.h>
 #include <panic.h>
 
@@ -15,7 +16,8 @@ void onTerminate(void) {
 }
 
 void ensureOpen(const char *path) {
-    stream = fopen(path, "r");
+    Panic_when(NULL == path);
+    stream = fopen(path, "r"); // open file for reading
     if (NULL == stream) {
         Panic_terminate("Unable to open file: %s", path);
     }
@@ -23,8 +25,9 @@ void ensureOpen(const char *path) {
 }
 
 void ensureWrite(const char *message) {
+    Panic_unless(NULL != message);
     if (fputs(message, stream) < 0) {
-        Panic_terminate("Unable to write to file");
+        Panic_terminate("Unable to write to file");  // file was opened for reading only
     }
 }
 
@@ -34,6 +37,7 @@ int main() {
     fclose(stream);
     return 0;
 }
+
 ```
 
 Output (with `PANIC_UNWIND_SUPPORT` enabled):
@@ -44,8 +48,8 @@ Traceback (most recent call last):
   [0]: (main)
   ->-: (ensureWrite) current function
 
-   At: /home/guest/Workspace/panic/examples/main.c:49
-Error: (22) Invalid argument
+   At: /home/guest/Workspace/panic/examples/main.c:51
+Error: (9) Bad file descriptor
 Cause: Unable to write to file
 
 ```
