@@ -1,5 +1,7 @@
 # Panic
 
+[![Build Status](https://travis-ci.org/daddinuz/panic.svg?branch=master)](https://travis-ci.org/daddinuz/panic)
+
 A panic library to abort execution on non-recoverable errors with a detailed message.
 
 ```c
