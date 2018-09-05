@@ -40,10 +40,10 @@ extern "C" {
 
 #define PANIC_VERSION_MAJOR         1
 #define PANIC_VERSION_MINOR         0
-#define PANIC_VERSION_PATCH         0
+#define PANIC_VERSION_PATCH         1
 #define PANIC_VERSION_SUFFIX        ""
 #define PANIC_VERSION_IS_RELEASE    0
-#define PANIC_VERSION_HEX           0x010000
+#define PANIC_VERSION_HEX           0x010001
 
 /**
  * Type signature of the callback to be executed before terminating.

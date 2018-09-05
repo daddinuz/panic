@@ -120,14 +120,7 @@ void doTerminate(const char *file, int line, const char *format, va_list args) {
     abort();
 }
 
-#if !defined(PANIC_UNWIND_SUPPORT) && PANIC_UNWIND_SUPPORT == 0
-
-void backtrace(FILE *const stream) {
-    assert(NULL != stream);
-    (void) stream;
-}
-
-#else
+#if PANIC_UNWIND_SUPPORT
 
 #define UNW_LOCAL_ONLY
 
@@ -185,6 +178,13 @@ void backtrace(FILE *const stream) {
     fputs(NEWLINE, stream);
 
     errno = previousError;  // restore errno
+}
+
+#else
+
+void backtrace(FILE *const stream) {
+    assert(NULL != stream);
+    (void) stream;
 }
 
 #endif
