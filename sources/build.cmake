@@ -32,7 +32,6 @@ option(PANIC_UNWIND_SUPPORT "Stack unwinding support" OFF)
 include(FindPackageHandleStandardArgs)
 
 if (NOT DEFINED LIBUNWIND_FOUND)
-
     # Set default sarch paths for libunwind
     if (LIBUNWIND_ROOT_DIR)
         set(LIBUNWIND_INCLUDE_DIR ${LIBUNWIND_ROOT_DIR}/include CACHE PATH "The include directory for libunwind")
