@@ -14,8 +14,8 @@
     "sources/panic.c"
   ],
   "development": {
-    "daddinuz/traits": "4.0.0",
-    "daddinuz/traits-unit": "4.0.1"
+    "daddinuz/traits": "4.0.1",
+    "daddinuz/traits-unit": "4.0.2"
   },
   "dependencies": {
     "daddinuz/trace": "2.0.0"

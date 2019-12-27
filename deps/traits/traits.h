@@ -1,7 +1,4 @@
 /*
- * Author: daddinuz
- * email:  daddinuz@gmail.com
- *
  * Copyright (c) 2019 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
@@ -41,7 +38,7 @@ extern "C" {
 #include <memory.h>
 #include <stdbool.h>
 
-#if !(defined(__GNUC__) || defined(__clang__))
+#if !defined(__GNUC__)
 #define __attribute__(...)
 #endif
 

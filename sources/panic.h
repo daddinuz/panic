@@ -36,8 +36,8 @@ extern "C" {
 #include <stdarg.h>
 #include <stdbool.h>
 
-#if !(defined(__GNUC__) || defined(__clang__))
-__attribute__(...)
+#if !defined(__GNUC__)
+#define __attribute__(...)
 #endif
 
 /**
