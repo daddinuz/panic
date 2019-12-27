@@ -25,15 +25,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdio.h>
-#include <panic.h>
+#pragma once
 
-double divide(const double dividend, const double divisor) {
-    panic_when(0 == divisor);
-    return dividend / divisor;
-}
+#include <stringify/stringify.h>
 
-int main() {
-    printf("%lf\r\n", divide(8, 0));
-    return 0;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define __TRACE__   __FILE__ ":" stringify(__LINE__)
+
+#ifdef __cplusplus
 }
+#endif
