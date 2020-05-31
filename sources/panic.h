@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,19 +34,18 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
-#include <stdbool.h>
 
 #if !defined(__GNUC__)
 #define __attribute__(...)
 #endif
 
 /**
- * Type signature of the callback to be executed before terminating.
+ * Type signature of the callback to be executed before terminating the current thread.
  */
 typedef void (*PanicHandler)(void);
 
 /**
- * Registers the handler function to execute before terminating.
+ * Registers the handler function to execute before terminating the current thread.
  *
  * @param handler The function to be executed, if NULL nothing will be executed.
  * @return The previous registered handler if any else NULL.
@@ -54,47 +53,35 @@ typedef void (*PanicHandler)(void);
 extern PanicHandler panic_register(PanicHandler handler);
 
 /**
- * Reports the error and terminates execution.
+ * Reports the error and terminates execution of the current thread.
  * Takes printf-like arguments.
  */
 #define panic(...) \
     __panic(__TRACE__, __VA_ARGS__)
 
 /**
- * Terminates execution if condition is `true`.
+ * Panics if the condition is true.
  */
-#define panic_when(condition) \
-    __panic_when((condition), __TRACE__, "`%s`", stringify(condition))
+#define panic_when(c) \
+    ((void) ((c) ? (panic("`%s` is false", stringify(c)), 0) : 0))
 
 /**
- * Terminates execution if condition is `false`.
+ * Panics if the condition is false.
  */
-#define panic_unless(condition) \
-    __panic_unless((condition), __TRACE__, "`%s` is not met", stringify(condition))
+#define panic_unless(c) \
+    panic_when(!(c))
 
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
+/*
+ * @attention this function must be treated as opaque therefore must not be called directly.
  */
-extern void __panic(const char *trace, const char *format, ...)
+extern void __panic(const char *restrict trace, const char *restrict format, ...)
 __attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));
 
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
+/*
+ * @attention this function must be treated as opaque therefore must not be called directly.
  */
-extern void __vpanic(const char *trace, const char *format, va_list args)
+extern void __vpanic(const char *restrict trace, const char *restrict format, va_list args)
 __attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
-
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
- */
-extern void __panic_when(bool condition, const char *trace, const char *format, ...)
-__attribute__((__nonnull__(2, 3), __format__(__printf__, 3, 4)));
-
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
- */
-extern void __panic_unless(bool condition, const char *trace, const char *format, ...)
-__attribute__((__nonnull__(2, 3), __format__(__printf__, 3, 4)));
 
 #ifdef __cplusplus
 }
