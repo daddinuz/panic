@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,11 @@ Feature(panic) {
 Feature(panic_when) {
     const size_t counter = traitsUnit_getWrappedSignalsCounter();
 
+    // protect against double expansion
+    int i = 1;
+    panic_when(i--);
+    assert_equal(0, i);
+
     traitsUnit_wrap(SIGABRT) {
         panic_when(true);
     }
@@ -54,6 +59,11 @@ Feature(panic_when) {
 
 Feature(panic_unless) {
     const size_t counter = traitsUnit_getWrappedSignalsCounter();
+
+    // protect against double expansion
+    int i = 0;
+    panic_unless(i++);
+    assert_equal(1, i);
 
     traitsUnit_wrap(SIGABRT) {
         panic_unless(false);
