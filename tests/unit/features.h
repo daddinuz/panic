@@ -34,9 +34,8 @@ extern "C" {
 #endif
 
 Feature(panic);
-Feature(panic_when);
-Feature(panic_unless);
-Feature(handler);
+Feature(panic_assert);
+Feature(panic_handler);
 
 #ifdef __cplusplus
 }

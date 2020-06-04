@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <stringify/stringify.h>
 #include <trace/trace.h>
 
 #ifdef __cplusplus
@@ -45,43 +46,44 @@ extern "C" {
 typedef void (*PanicHandler)(void);
 
 /**
- * Registers the handler function to execute before terminating the current thread.
+ * Registers the termination handler to be executed before terminating the current thread.
  *
- * @param handler The function to be executed, if NULL nothing will be executed.
+ * @param handler The handler to be executed, if NULL nothing will be executed.
  * @return The previous registered handler if any else NULL.
  */
-extern PanicHandler panic_register(PanicHandler handler);
+extern PanicHandler panic_registerHandler(PanicHandler handler);
+
+/**
+ * Reports the error and terminates execution of the current thread.
+ * Takes printf-like arguments.
+ * 
+ * Prefer `panic` macro to this function whenever it is possible.
+ * 
+ * @param trace Info about call site of this function.
+ * 
+ * ```
+ * panic_abort(__func__, "unexpected error");
+ * ```
+ */
+extern void panic_abort(const char *restrict trace, const char *restrict format, ...)
+__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));
+
+/**
+ * Variadic version of panic_abort.
+ */
+extern void panic_vabort(const char *restrict trace, const char *restrict format, va_list args)
+__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
 
 /**
  * Reports the error and terminates execution of the current thread.
  * Takes printf-like arguments.
  */
-#define panic(...) \
-    __panic(__TRACE__, __VA_ARGS__)
+#define panic(...)                  panic_abort(TRACE, __VA_ARGS__)
 
 /**
- * Panics if the condition is true.
+ * Panics when condition is not met.
  */
-#define panic_when(c) \
-    ((void) ((c) ? (panic("`%s` is false", stringify(c)), 0) : 0))
-
-/**
- * Panics if the condition is false.
- */
-#define panic_unless(c) \
-    panic_when(!(c))
-
-/*
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern void __panic(const char *restrict trace, const char *restrict format, ...)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));
-
-/*
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern void __vpanic(const char *restrict trace, const char *restrict format, va_list args)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
+#define panic_assert(condition)     ((void) ((condition) ? 1 : (panic("Condition `%s` is not met", stringify_lazyQuote(condition)), 0)))
 
 #ifdef __cplusplus
 }

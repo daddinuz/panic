@@ -31,6 +31,5 @@
 Describe("Panic",
          Trait("",
                Run(panic),
-               Run(panic_when),
-               Run(panic_unless),
-               Run(handler)))
+               Run(panic_assert),
+               Run(panic_handler)))

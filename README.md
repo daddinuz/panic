@@ -2,18 +2,30 @@
 
 [![Build Status](https://travis-ci.org/daddinuz/panic.svg?branch=master)](https://travis-ci.org/daddinuz/panic)
 
-A panic library to abort execution on non-recoverable errors with a detailed message.
+A panic library to abort execution of the current thread on non-recoverable errors with a detailed message.
 
 ```c
+#include <stdlib.h>
 #include <stdio.h>
 #include <panic.h>
 
-double divide(const double dividend, const double divisor) {
-    panic_when(0 == divisor);
+// this handler will run after panicHandler.
+static void exitHandler(void) {
+    fprintf(stderr, " Here: %s\n", __func__);
+}
+
+static void panicHandler(void) {
+    fprintf(stderr, " Here: %s\n", __func__);
+}
+
+static double divide(const double dividend, const double divisor) {
+    panic_assert(0.0001 < divisor || divisor < -0.0001);
     return dividend / divisor;
 }
 
-int main() {
+int main(void) {
+    atexit(exitHandler);
+    panic_registerHandler(panicHandler);
     printf("%lf\r\n", divide(8, 0));
     return 0;
 }
@@ -26,8 +38,10 @@ Traceback (most recent call last):
   [0]: (main)
   ->-: (divide) current function
 
-   At: '/panic/examples/main.c:37'
-Cause: `0 == divisor`
+   At: 'panic/examples/main.c:42'
+Cause: Condition `0.0001 < divisor || divisor < -0.0001` is not met
+ Here: panicHandler
+ Here: exitHandler
 ```
 
 ### Optional features

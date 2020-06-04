@@ -32,48 +32,27 @@
 static void panicHandler(void) {}
 
 Feature(panic) {
-    const size_t counter = traitsUnit_getWrappedSignalsCounter();
-
-    traitsUnit_wrap(SIGABRT) {
-        panic("%s", "A panic message");
-    }
-
-    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
+    printf(" `here` ");
+    panic("%s", "A panic message");
+    printf(" `can't see this` ");
+    assert_that(false);
 }
 
-Feature(panic_when) {
-    const size_t counter = traitsUnit_getWrappedSignalsCounter();
-
+Feature(panic_assert) {
     // protect against double expansion
     int i = 1;
-    panic_when(i--);
+    printf(" `step 1` ");
+    panic_assert(i--);
+    printf(" `step 2` ");
     assert_equal(0, i);
 
-    traitsUnit_wrap(SIGABRT) {
-        panic_when(true);
-    }
-
-    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
-    panic_when(false);
+    printf(" `step 3` ");
+    panic_assert(false);
+    printf(" `can't see this` ");
+    assert_that(false);
 }
 
-Feature(panic_unless) {
-    const size_t counter = traitsUnit_getWrappedSignalsCounter();
-
-    // protect against double expansion
-    int i = 0;
-    panic_unless(i++);
-    assert_equal(1, i);
-
-    traitsUnit_wrap(SIGABRT) {
-        panic_unless(false);
-    }
-
-    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
-    panic_unless(true);
-}
-
-Feature(handler) {
-    assert_null(panic_register(panicHandler));
-    assert_equal(panicHandler, panic_register(NULL));
+Feature(panic_handler) {
+    assert_null(panic_registerHandler(panicHandler));
+    assert_equal(panicHandler, panic_registerHandler(NULL));
 }

@@ -25,15 +25,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <panic.h>
 
-double divide(const double dividend, const double divisor) {
-    panic_when(0 == divisor);
+// this handler will run after panicHandler.
+static void exitHandler(void) {
+    fprintf(stderr, " Here: %s\n", __func__);
+}
+
+static void panicHandler(void) {
+    fprintf(stderr, " Here: %s\n", __func__);
+}
+
+static double divide(const double dividend, const double divisor) {
+    panic_assert(0.0001 < divisor || divisor < -0.0001);
     return dividend / divisor;
 }
 
-int main() {
+int main(void) {
+    atexit(exitHandler);
+    panic_registerHandler(panicHandler);
     printf("%lf\r\n", divide(8, 0));
     return 0;
 }

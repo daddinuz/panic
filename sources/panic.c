@@ -48,16 +48,16 @@ static PanicHandler globalPanicHandler = NULL;
 static void terminate(const char *restrict trace, const char *restrict format, va_list args)
 __attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
 
-static void backtrace(FILE *stream)
+static void stacktrace(FILE *stream)
 __attribute__((__nonnull__));
 
-PanicHandler panic_register(const PanicHandler handler) {
+PanicHandler panic_registerHandler(const PanicHandler handler) {
     const PanicHandler backup = globalPanicHandler;
     globalPanicHandler = handler;
     return backup;
 }
 
-void __panic(const char *const trace, const char *const format, ...) {
+void panic_abort(const char *const trace, const char *const format, ...) {
     assert(NULL != trace);
     assert(NULL != format);
     va_list args;
@@ -65,7 +65,7 @@ void __panic(const char *const trace, const char *const format, ...) {
     terminate(trace, format, args);
 }
 
-void __vpanic(const char *const trace, const char *const format, va_list args) {
+void panic_vabort(const char *const trace, const char *const format, va_list args) {
     assert(NULL != trace);
     assert(NULL != format);
     terminate(trace, format, args);
@@ -75,7 +75,7 @@ void terminate(const char *const trace, const char *const format, va_list args) 
     assert(NULL != trace);
     assert(NULL != format);
     fputs(NEWLINE, stderr);
-    backtrace(stderr);
+    stacktrace(stderr);
     fprintf(stderr, "   At: '%s'" NEWLINE, trace);
 
     if (0 != errno) {
@@ -94,7 +94,7 @@ void terminate(const char *const trace, const char *const format, va_list args) 
     thrd_exit(EXIT_FAILURE);
 }
 
-void backtrace(FILE *const stream) {
+void stacktrace(FILE *const stream) {
     assert(NULL != stream);
     (void) stream;
 #if PANIC_UNWIND_SUPPORT
