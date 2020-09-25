@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <stringify/stringify.h>
 #include <trace/trace.h>
 
 #ifdef __cplusplus
@@ -34,67 +35,60 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
-#include <stdbool.h>
+#include <stdnoreturn.h>
 
-#if !defined(__GNUC__)
+#if !(defined(__GNUC__) || defined(__clang__))
 #define __attribute__(...)
 #endif
 
 /**
- * Type signature of the callback to be executed before terminating.
+ * Type signature of the callback to be executed before terminating the current thread.
  */
 typedef void (*PanicHandler)(void);
 
 /**
- * Registers the handler function to execute before terminating.
+ * Registers the termination handler to be executed before terminating the current thread.
+ * The registered handler is thread local.
  *
- * @param handler The function to be executed, if NULL nothing will be executed.
+ * @param handler The handler to be executed, if NULL nothing will be executed.
  * @return The previous registered handler if any else NULL.
  */
-extern PanicHandler panic_register(PanicHandler handler);
+extern PanicHandler panic_registerHandler(PanicHandler handler);
 
 /**
- * Reports the error and terminates execution.
+ * Reports the error and terminates execution of the current thread.
+ * Takes printf-like arguments.
+ * 
+ * @param trace Info about call site of this function.
+ * 
+ * ```
+ * panic_abort(__func__, "Some error description");
+ * ```
+ */
+noreturn extern void panic_abort(const char *restrict trace, const char *restrict format, ...)
+__attribute__((__nonnull__(1, 2), __format__(__printf__, 2, 3)));
+
+/**
+ * Variadic version of panic_abort.
+ */
+noreturn extern void panic_vabort(const char *restrict trace, const char *restrict format, va_list args)
+__attribute__((__nonnull__(1, 2), __format__(__printf__, 2, 0)));
+
+/**
+ * Reports the error and terminates execution of the current thread.
  * Takes printf-like arguments.
  */
-#define panic(...) \
-    __panic(__TRACE__, __VA_ARGS__)
+#define panic(...)                                  panic_abort(TRACE, __VA_ARGS__)
 
 /**
- * Terminates execution if condition is `true`.
+ * Panics when condition is not met specifying a custom trace.
  */
-#define panic_when(condition) \
-    __panic_when((condition), __TRACE__, "`%s`", stringify(condition))
+#define panic_assertWith(trace, condition, ...)     ((void) ((condition) ? 1 : (panic_abort((trace), __VA_ARGS__), 0)))
 
 /**
- * Terminates execution if condition is `false`.
+ * Panics when condition is not met.
  */
-#define panic_unless(condition) \
-    __panic_unless((condition), __TRACE__, "`%s` is not met", stringify(condition))
-
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
- */
-extern void __panic(const char *trace, const char *format, ...)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));
-
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
- */
-extern void __vpanic(const char *trace, const char *format, va_list args)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
-
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
- */
-extern void __panic_when(bool condition, const char *trace, const char *format, ...)
-__attribute__((__nonnull__(2, 3), __format__(__printf__, 3, 4)));
-
-/**
- * @attention this function must be treated as opaque therefore should not be called directly.
- */
-extern void __panic_unless(bool condition, const char *trace, const char *format, ...)
-__attribute__((__nonnull__(2, 3), __format__(__printf__, 3, 4)));
+#define panic_assert(condition, ...)                ((void) ((condition) ? 1 : (panic_abort(TRACE, __VA_ARGS__), 0)))
 
 #ifdef __cplusplus
 }

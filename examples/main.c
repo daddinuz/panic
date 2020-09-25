@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <panic.h>
 
-double divide(const double dividend, const double divisor) {
-    panic_when(0 == divisor);
+// thread local handler called before terminating the thread.
+static void panicHandler(void) {
+    fprintf(stderr, " Here: '%s:%d (%s)'\n", __FILE__, __LINE__, __func__);
+}
+
+// global handler called before terminating the whole program, this handler will run after panicHandler.
+static void exitHandler(void) {
+    fprintf(stderr, " Here: '%s:%d (%s)'\n", __FILE__, __LINE__, __func__);
+}
+
+static double divide(const double dividend, const double divisor) {
+    panic_assert(0.000001 < divisor || divisor < -0.000001, "Division by zero");
     return dividend / divisor;
 }
 
-int main() {
-    printf("%lf\r\n", divide(8, 0));
+int main(void) {
+    atexit(exitHandler);
+    panic_registerHandler(panicHandler);
+    printf("%f\r\n", divide(8, 0));
     return 0;
 }

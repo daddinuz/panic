@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,41 +29,86 @@
 #include <traits/traits.h>
 #include "features.h"
 
-static void panicHandler(void) {}
+void *context = NULL;
+
+static void panicHandler(void) {
+    assert_not_null(context);
+    int *const theAnswer = context;
+    *theAnswer = 42;
+}
+
+Feature(panic_registerHandler) {
+    assert_null(panic_registerHandler(panicHandler));
+    assert_equal(panicHandler, panic_registerHandler(NULL));
+    assert_null(panic_registerHandler(panicHandler));
+
+    context = traitsUnit_getContext();
+    panic("Panicking");
+
+    // unreachable
+    assert_that(false);
+}
+
+Feature(panic_abort) {
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
+
+    panic_abort(TRACE, "Panicking");
+
+    // unreachable
+    assert_that(false);
+}
+
+Feature(panic_assertWith) {
+    // Protect against double expansion.
+    // 
+    // Note:
+    //      Ensuring that no handler is registered so that
+    //      if `panic_assertWith` would not work properly,
+    //      assertions in PanicTeardown won't pass.
+    panic_registerHandler(NULL);
+    int i = 1;
+    panic_assertWith(TRACE, i--, "Unmet condition");
+    assert_equal(0, i);
+
+    // Registering the handler now, we are going to terminate the current thread.
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
+
+    panic_assertWith(TRACE, false, "Unmet condition");
+
+    // unreachable
+    assert_that(false);
+}
+
+Feature(panic_assert) {
+    // Protect against double expansion.
+    // 
+    // Note:
+    //      Ensuring that no handler is registered so that
+    //      if `panic_assert` would not work properly,
+    //      assertions in PanicTeardown won't pass.
+    panic_registerHandler(NULL);
+    int i = 1;
+    panic_assert(i--, "Unmet condition");
+    assert_equal(0, i);
+
+    // Registering the handler now, we are going to terminate the current thread.
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
+
+    panic_assert(false, "Unmet condition");
+
+    // unreachable
+    assert_that(false);
+}
 
 Feature(panic) {
-    const size_t counter = traitsUnit_getWrappedSignalsCounter();
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
 
-    traitsUnit_wrap(SIGABRT) {
-        panic("%s", "A panic message");
-    }
+    panic("Panicking");
 
-    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
-}
-
-Feature(panic_when) {
-    const size_t counter = traitsUnit_getWrappedSignalsCounter();
-
-    traitsUnit_wrap(SIGABRT) {
-        panic_when(true);
-    }
-
-    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
-    panic_when(false);
-}
-
-Feature(panic_unless) {
-    const size_t counter = traitsUnit_getWrappedSignalsCounter();
-
-    traitsUnit_wrap(SIGABRT) {
-        panic_unless(false);
-    }
-
-    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
-    panic_unless(true);
-}
-
-Feature(handler) {
-    assert_null(panic_register(panicHandler));
-    assert_equal(panicHandler, panic_register(NULL));
+    // unreachable
+    assert_that(false);
 }

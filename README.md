@@ -2,19 +2,32 @@
 
 [![Build Status](https://travis-ci.org/daddinuz/panic.svg?branch=master)](https://travis-ci.org/daddinuz/panic)
 
-A panic library to abort execution on non-recoverable errors with a detailed message.
+A panic library to abort execution of the current thread on non-recoverable errors with a detailed message.
 
 ```c
+#include <stdlib.h>
 #include <stdio.h>
 #include <panic.h>
 
-double divide(const double dividend, const double divisor) {
-    panic_when(0 == divisor);
+// thread local handler called before terminating the thread.
+static void panicHandler(void) {
+    fprintf(stderr, " Here: '%s:%d (%s)'\n", __FILE__, __LINE__, __func__);
+}
+
+// global handler called before terminating the whole program, this handler will run after panicHandler.
+static void exitHandler(void) {
+    fprintf(stderr, " Here: '%s:%d (%s)'\n", __FILE__, __LINE__, __func__);
+}
+
+static double divide(const double dividend, const double divisor) {
+    panic_assert(0.000001 < divisor || divisor < -0.000001, "Division by zero");
     return dividend / divisor;
 }
 
-int main() {
-    printf("%lf\r\n", divide(8, 0));
+int main(void) {
+    atexit(exitHandler);
+    panic_registerHandler(panicHandler);
+    printf("%f\r\n", divide(8, 0));
     return 0;
 }
 ```
@@ -26,8 +39,10 @@ Traceback (most recent call last):
   [0]: (main)
   ->-: (divide) current function
 
-   At: '/panic/examples/main.c:37'
-Cause: `0 == divisor`
+   At: '/panic/examples/main.c:43'
+Cause: Division by zero
+ Here: '/panic/examples/main.c:34 (panicHandler)'
+ Here: '/panic/examples/main.c:39 (exitHandler)'
 ```
 
 ### Optional features

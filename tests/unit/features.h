@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,10 +33,11 @@
 extern "C" {
 #endif
 
+Feature(panic_registerHandler);
+Feature(panic_abort);
+Feature(panic_assertWith);
+Feature(panic_assert);
 Feature(panic);
-Feature(panic_when);
-Feature(panic_unless);
-Feature(handler);
 
 #ifdef __cplusplus
 }
