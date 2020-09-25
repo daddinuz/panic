@@ -29,30 +29,86 @@
 #include <traits/traits.h>
 #include "features.h"
 
-static void panicHandler(void) {}
+void *context = NULL;
 
-Feature(panic) {
-    printf(" `here` ");
-    panic("%s", "A panic message");
-    printf(" `can't see this` ");
+static void panicHandler(void) {
+    assert_not_null(context);
+    int *const theAnswer = context;
+    *theAnswer = 42;
+}
+
+Feature(panic_registerHandler) {
+    assert_null(panic_registerHandler(panicHandler));
+    assert_equal(panicHandler, panic_registerHandler(NULL));
+    assert_null(panic_registerHandler(panicHandler));
+
+    context = traitsUnit_getContext();
+    panic("Panicking");
+
+    // unreachable
+    assert_that(false);
+}
+
+Feature(panic_abort) {
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
+
+    panic_abort(TRACE, "Panicking");
+
+    // unreachable
+    assert_that(false);
+}
+
+Feature(panic_assertWith) {
+    // Protect against double expansion.
+    // 
+    // Note:
+    //      Ensuring that no handler is registered so that
+    //      if `panic_assertWith` would not work properly,
+    //      assertions in PanicTeardown won't pass.
+    panic_registerHandler(NULL);
+    int i = 1;
+    panic_assertWith(TRACE, i--, "Unmet condition");
+    assert_equal(0, i);
+
+    // Registering the handler now, we are going to terminate the current thread.
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
+
+    panic_assertWith(TRACE, false, "Unmet condition");
+
+    // unreachable
     assert_that(false);
 }
 
 Feature(panic_assert) {
-    // protect against double expansion
+    // Protect against double expansion.
+    // 
+    // Note:
+    //      Ensuring that no handler is registered so that
+    //      if `panic_assert` would not work properly,
+    //      assertions in PanicTeardown won't pass.
+    panic_registerHandler(NULL);
     int i = 1;
-    printf(" `step 1` ");
-    panic_assert(i--);
-    printf(" `step 2` ");
+    panic_assert(i--, "Unmet condition");
     assert_equal(0, i);
 
-    printf(" `step 3` ");
-    panic_assert(false);
-    printf(" `can't see this` ");
+    // Registering the handler now, we are going to terminate the current thread.
+    assert_null(panic_registerHandler(panicHandler));
+    context = traitsUnit_getContext();
+
+    panic_assert(false, "Unmet condition");
+
+    // unreachable
     assert_that(false);
 }
 
-Feature(panic_handler) {
+Feature(panic) {
     assert_null(panic_registerHandler(panicHandler));
-    assert_equal(panicHandler, panic_registerHandler(NULL));
+    context = traitsUnit_getContext();
+
+    panic("Panicking");
+
+    // unreachable
+    assert_that(false);
 }

@@ -25,14 +25,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <panic.h>
+#include <traits/traits.h>
 #include "fixtures.h"
-#include "features.h"
-#include <traits-unit/traits-unit.h>
 
-Describe("Panic",
-            Trait("",
-                Run(panic_registerHandler, PanicFixture),
-                Run(panic_abort, PanicFixture),
-                Run(panic_assertWith, PanicFixture),
-                Run(panic_assert, PanicFixture),
-                Run(panic, PanicFixture)))
+static int theAnswer = 0;
+
+Setup(PanicSetup);
+Teardown(PanicTeardown);
+
+FixtureImplements(PanicFixture, PanicSetup, PanicTeardown);
+
+Setup(PanicSetup) {
+    panic_registerHandler(NULL);
+    theAnswer = 0;
+    return &theAnswer;
+}
+
+Teardown(PanicTeardown) {
+    assert_not_null(panic_registerHandler(NULL));
+    assert_equal(&theAnswer, traitsUnit_getContext());
+    assert_equal(42, theAnswer);
+}

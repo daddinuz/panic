@@ -9,24 +9,25 @@ A panic library to abort execution of the current thread on non-recoverable erro
 #include <stdio.h>
 #include <panic.h>
 
-// this handler will run after panicHandler.
-static void exitHandler(void) {
-    fprintf(stderr, " Here: %s\n", __func__);
+// thread local handler called before terminating the thread.
+static void panicHandler(void) {
+    fprintf(stderr, " Here: '%s:%d (%s)'\n", __FILE__, __LINE__, __func__);
 }
 
-static void panicHandler(void) {
-    fprintf(stderr, " Here: %s\n", __func__);
+// global handler called before terminating the whole program, this handler will run after panicHandler.
+static void exitHandler(void) {
+    fprintf(stderr, " Here: '%s:%d (%s)'\n", __FILE__, __LINE__, __func__);
 }
 
 static double divide(const double dividend, const double divisor) {
-    panic_assert(0.0001 < divisor || divisor < -0.0001);
+    panic_assert(0.000001 < divisor || divisor < -0.000001, "Division by zero");
     return dividend / divisor;
 }
 
 int main(void) {
     atexit(exitHandler);
     panic_registerHandler(panicHandler);
-    printf("%lf\r\n", divide(8, 0));
+    printf("%f\r\n", divide(8, 0));
     return 0;
 }
 ```
@@ -38,10 +39,10 @@ Traceback (most recent call last):
   [0]: (main)
   ->-: (divide) current function
 
-   At: 'panic/examples/main.c:42'
-Cause: Condition `0.0001 < divisor || divisor < -0.0001` is not met
- Here: panicHandler
- Here: exitHandler
+   At: '/panic/examples/main.c:43'
+Cause: Division by zero
+ Here: '/panic/examples/main.c:34 (panicHandler)'
+ Here: '/panic/examples/main.c:39 (exitHandler)'
 ```
 
 ### Optional features

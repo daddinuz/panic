@@ -33,9 +33,11 @@
 extern "C" {
 #endif
 
-Feature(panic);
+Feature(panic_registerHandler);
+Feature(panic_abort);
+Feature(panic_assertWith);
 Feature(panic_assert);
-Feature(panic_handler);
+Feature(panic);
 
 #ifdef __cplusplus
 }

@@ -25,14 +25,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "fixtures.h"
-#include "features.h"
+#pragma once
+
 #include <traits-unit/traits-unit.h>
 
-Describe("Panic",
-            Trait("",
-                Run(panic_registerHandler, PanicFixture),
-                Run(panic_abort, PanicFixture),
-                Run(panic_assertWith, PanicFixture),
-                Run(panic_assert, PanicFixture),
-                Run(panic, PanicFixture)))
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Fixture(PanicFixture);
+
+#ifdef __cplusplus
+}
+#endif

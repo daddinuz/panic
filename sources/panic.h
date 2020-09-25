@@ -35,8 +35,9 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
+#include <stdnoreturn.h>
 
-#if !defined(__GNUC__)
+#if !(defined(__GNUC__) || defined(__clang__))
 #define __attribute__(...)
 #endif
 
@@ -47,6 +48,7 @@ typedef void (*PanicHandler)(void);
 
 /**
  * Registers the termination handler to be executed before terminating the current thread.
+ * The registered handler is thread local.
  *
  * @param handler The handler to be executed, if NULL nothing will be executed.
  * @return The previous registered handler if any else NULL.
@@ -57,33 +59,36 @@ extern PanicHandler panic_registerHandler(PanicHandler handler);
  * Reports the error and terminates execution of the current thread.
  * Takes printf-like arguments.
  * 
- * Prefer `panic` macro to this function whenever it is possible.
- * 
  * @param trace Info about call site of this function.
  * 
  * ```
- * panic_abort(__func__, "unexpected error");
+ * panic_abort(__func__, "Some error description");
  * ```
  */
-extern void panic_abort(const char *restrict trace, const char *restrict format, ...)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));
+noreturn extern void panic_abort(const char *restrict trace, const char *restrict format, ...)
+__attribute__((__nonnull__(1, 2), __format__(__printf__, 2, 3)));
 
 /**
  * Variadic version of panic_abort.
  */
-extern void panic_vabort(const char *restrict trace, const char *restrict format, va_list args)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
+noreturn extern void panic_vabort(const char *restrict trace, const char *restrict format, va_list args)
+__attribute__((__nonnull__(1, 2), __format__(__printf__, 2, 0)));
 
 /**
  * Reports the error and terminates execution of the current thread.
  * Takes printf-like arguments.
  */
-#define panic(...)                  panic_abort(TRACE, __VA_ARGS__)
+#define panic(...)                                  panic_abort(TRACE, __VA_ARGS__)
+
+/**
+ * Panics when condition is not met specifying a custom trace.
+ */
+#define panic_assertWith(trace, condition, ...)     ((void) ((condition) ? 1 : (panic_abort((trace), __VA_ARGS__), 0)))
 
 /**
  * Panics when condition is not met.
  */
-#define panic_assert(condition)     ((void) ((condition) ? 1 : (panic("Condition `%s` is not met", stringify_lazyQuote(condition)), 0)))
+#define panic_assert(condition, ...)                ((void) ((condition) ? 1 : (panic_abort(TRACE, __VA_ARGS__), 0)))
 
 #ifdef __cplusplus
 }

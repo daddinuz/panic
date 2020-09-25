@@ -43,17 +43,17 @@
 #define NEWLINE "\n"
 #endif
 
-static PanicHandler globalPanicHandler = NULL;
+thread_local static PanicHandler threadLocalPanicHandler = NULL;
 
-static void terminate(const char *restrict trace, const char *restrict format, va_list args)
-__attribute__((__noreturn__, __nonnull__(1, 2), __format__(__printf__, 2, 0)));
+noreturn static void terminate(const char *restrict trace, const char *restrict format, va_list args)
+__attribute__((__nonnull__(1, 2), __format__(__printf__, 2, 0)));
 
 static void stacktrace(FILE *stream)
 __attribute__((__nonnull__));
 
 PanicHandler panic_registerHandler(const PanicHandler handler) {
-    const PanicHandler backup = globalPanicHandler;
-    globalPanicHandler = handler;
+    const PanicHandler backup = threadLocalPanicHandler;
+    threadLocalPanicHandler = handler;
     return backup;
 }
 
@@ -87,8 +87,8 @@ void terminate(const char *const trace, const char *const format, va_list args) 
     fputs(NEWLINE, stderr);
     va_end(args);
 
-    if (NULL != globalPanicHandler) {
-        globalPanicHandler();
+    if (NULL != threadLocalPanicHandler) {
+        threadLocalPanicHandler();
     }
 
     thrd_exit(EXIT_FAILURE);
@@ -99,7 +99,7 @@ void stacktrace(FILE *const stream) {
     (void) stream;
 #if PANIC_UNWIND_SUPPORT
 
-#define UNWIND_STEPS        8u
+#define UNWIND_STEPS         8u
 #define UNWIND_FN_NAME_LEN  32u
 
     char buffer[UNWIND_STEPS][UNWIND_FN_NAME_LEN + 1] = {{ 0 }};
